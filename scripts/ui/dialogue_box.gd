@@ -9,6 +9,9 @@ signal finished(choice: int)
 const UIKit = preload("res://scripts/ui/ui_kit.gd")
 const ChoiceList = preload("res://scripts/ui/choice_list.gd")
 const CHARS_PER_SECOND := 40.0
+## Test: makes the boxes ripple. Tweak the look in shaders/wobble.gdshader.
+const WOBBLE := true
+const WobbleShader = preload("res://shaders/wobble.gdshader")
 
 var _box: Panel
 var _label: Label
@@ -49,6 +52,28 @@ func _ready() -> void:
 	_choices.position = Vector2(4, 5)
 	_choice_box.add_child(_choices)
 	_choice_box.visible = false
+
+	if WOBBLE:
+		_add_wobble(_box)
+		_add_wobble(_choice_box)
+
+
+## Lays a wobble-shader rectangle over the box, a little bigger so the border
+## has room to sway. It must be the box's last child so it's drawn on top.
+func _add_wobble(box: Control) -> void:
+	# Grab a fresh copy of the screen so the shader sees this box, not just
+	# what was there before the previous box drew.
+	var copy := BackBufferCopy.new()
+	copy.copy_mode = BackBufferCopy.COPY_MODE_VIEWPORT
+	box.add_child(copy)
+	var margin := 3.0
+	var overlay := ColorRect.new()
+	overlay.mouse_filter = MOUSE_FILTER_IGNORE
+	overlay.position = Vector2(-margin, -margin)
+	overlay.size = box.size + Vector2(margin, margin) * 2.0
+	overlay.material = ShaderMaterial.new()
+	overlay.material.shader = WobbleShader
+	box.add_child(overlay)
 
 
 func say(lines: Array, choices: Array = []) -> int:
