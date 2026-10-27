@@ -9,11 +9,9 @@ signal finished(choice: int)
 const UIKit = preload("res://scripts/ui/ui_kit.gd")
 const ChoiceList = preload("res://scripts/ui/choice_list.gd")
 const CHARS_PER_SECOND := 40.0
-## Test: makes the boxes ripple. Tweak the look in shaders/wobble.gdshader.
-const WOBBLE := true
+## The player turns these on and off in the field menu's Options. Tweak how
+## they look in the shader files.
 const WobbleShader = preload("res://shaders/wobble.gdshader")
-## Test: a sliding checkerboard behind the text. Tweak it in shaders/checker.gdshader.
-const CHECKER := true
 const CheckerShader = preload("res://shaders/checker.gdshader")
 
 var _box: Panel
@@ -23,6 +21,7 @@ var _choice_box: Panel
 var _choices: ChoiceList
 var _text_color := UIKit.TEXT
 var _checkers: Array = []
+var _wobbles: Array = []
 
 var _lines: Array = []
 var _choice_labels: Array = []
@@ -58,17 +57,19 @@ func _ready() -> void:
 	_choice_box.add_child(_choices)
 	_choice_box.visible = false
 
-	if WOBBLE:
-		_add_wobble(_box)
-		_add_wobble(_choice_box)
-	if CHECKER:
-		_add_checker(_box)
-		_add_checker(_choice_box)
-	_apply_colors()
+	for box in [_box, _choice_box]:
+		_add_wobble(box)
+		_add_checker(box)
+	_apply_settings()
 
 
-## Paints both boxes in the colour picked in the field menu (Game.text_box_color).
-func _apply_colors() -> void:
+## Applies the text box settings from the field menu's Options: the colour
+## (Game.text_box_color) and whether the wobble and checker are on.
+func _apply_settings() -> void:
+	for overlay in _wobbles:
+		overlay.visible = Game.text_box_wobble
+	for checker in _checkers:
+		checker.visible = Game.text_box_checker
 	var c: Dictionary = UIKit.TEXT_BOX_COLORS[Game.text_box_color]
 	for box in [_box, _choice_box]:
 		box.add_theme_stylebox_override("panel", UIKit.box_style(c["bg"], c["border"]))
@@ -122,13 +123,14 @@ func _add_wobble(box: Control) -> void:
 	box.add_child(overlay)
 	box.move_child(copy, 0)
 	box.move_child(overlay, 1)
+	_wobbles.append(overlay)
 
 
 func say(lines: Array, choices: Array = []) -> int:
 	_lines = lines
 	_choice_labels = choices
 	_line = 0
-	_apply_colors()
+	_apply_settings()
 	_active = true
 	_opened_frame = Engine.get_process_frames()
 	visible = true

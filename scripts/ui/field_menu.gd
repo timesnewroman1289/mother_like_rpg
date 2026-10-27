@@ -185,8 +185,38 @@ func _status() -> void:
 	_status_box.visible = false
 
 
-## Pick a text box colour. The info box previews each one as you move.
+## Text box settings. Stays open so you can change several; X goes back.
 func _options() -> void:
+	var about := [
+		"Pick a colour for the text box.",
+		"Make the text box's frame ripple.",
+		"A checkerboard that slides behind the text."]
+	var row := 0
+	while true:
+		_list.set_items(["Box colour", "Wobble", "Checker"], [],
+			[Game.text_box_color, _on_off(Game.text_box_wobble), _on_off(Game.text_box_checker)])
+		var describe := func(i: int) -> void:
+			_info.text = about[i]
+		var pick: int = await _pick_from_list(describe, row)
+		if pick < 0:
+			return
+		row = pick
+		if pick == 0:
+			await _pick_box_color()
+		elif pick == 1:
+			Game.text_box_wobble = not Game.text_box_wobble
+			await dialogue.say(["• Wobble is now %s." % _on_off(Game.text_box_wobble).to_lower()])
+		else:
+			Game.text_box_checker = not Game.text_box_checker
+			await dialogue.say(["• The checkerboard is now %s." % _on_off(Game.text_box_checker).to_lower()])
+
+
+func _on_off(on: bool) -> String:
+	return "On" if on else "Off"
+
+
+## The info box previews each colour as you move through the list.
+func _pick_box_color() -> void:
 	var names: Array = UIKit.TEXT_BOX_COLORS.keys()
 	_list.set_items(names)
 	var preview := func(i: int) -> void:

@@ -30,6 +30,8 @@ var grace_time := 0.0  # seconds of "enemies leave you alone" after fleeing
 
 # Settings. Not part of the save, so they stick through game overs.
 var text_box_color := "Black"  # a key of UIKit.TEXT_BOX_COLORS
+var text_box_wobble := true    # the box frame ripples
+var text_box_checker := true   # a sliding checkerboard behind the text
 
 var _save := {}
 
