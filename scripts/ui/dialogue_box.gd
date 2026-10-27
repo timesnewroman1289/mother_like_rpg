@@ -59,7 +59,8 @@ func _ready() -> void:
 
 
 ## Lays a wobble-shader rectangle over the box, a little bigger so the border
-## has room to sway. It must be the box's last child so it's drawn on top.
+## has room to sway. It goes in as the box's first child: the panel itself is
+## drawn before it (so it wobbles) and the text after it (so it stays still).
 func _add_wobble(box: Control) -> void:
 	# Grab a fresh copy of the screen so the shader sees this box, not just
 	# what was there before the previous box drew.
@@ -74,6 +75,8 @@ func _add_wobble(box: Control) -> void:
 	overlay.material = ShaderMaterial.new()
 	overlay.material.shader = WobbleShader
 	box.add_child(overlay)
+	box.move_child(copy, 0)
+	box.move_child(overlay, 1)
 
 
 func say(lines: Array, choices: Array = []) -> int:
