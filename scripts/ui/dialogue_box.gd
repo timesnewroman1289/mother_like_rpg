@@ -12,6 +12,9 @@ const CHARS_PER_SECOND := 40.0
 ## Test: makes the boxes ripple. Tweak the look in shaders/wobble.gdshader.
 const WOBBLE := true
 const WobbleShader = preload("res://shaders/wobble.gdshader")
+## Test: a sliding checkerboard behind the text. Tweak it in shaders/checker.gdshader.
+const CHECKER := true
+const CheckerShader = preload("res://shaders/checker.gdshader")
 
 var _box: Panel
 var _label: Label
@@ -19,6 +22,7 @@ var _arrow: Control
 var _choice_box: Panel
 var _choices: ChoiceList
 var _text_color := UIKit.TEXT
+var _checkers: Array = []
 
 var _lines: Array = []
 var _choice_labels: Array = []
@@ -57,6 +61,9 @@ func _ready() -> void:
 	if WOBBLE:
 		_add_wobble(_box)
 		_add_wobble(_choice_box)
+	if CHECKER:
+		_add_checker(_box)
+		_add_checker(_choice_box)
 	_apply_colors()
 
 
@@ -71,6 +78,29 @@ func _apply_colors() -> void:
 	_choices.text_color = _text_color
 	_choices.hilite_color = c["hilite"]
 	_choices.select_bg = Color(_text_color, 0.14)
+	# The checker's second colour is a shade off the box colour: darker on
+	# light boxes, lighter on dark ones, so the text stays easy to read.
+	var bg: Color = c["bg"]
+	var shade := bg.darkened(0.08) if bg.get_luminance() > 0.5 else bg.lightened(0.08)
+	for checker in _checkers:
+		checker.material.set_shader_parameter("color_a", bg)
+		checker.material.set_shader_parameter("color_b", shade)
+
+
+## Fills the inside of the box (within the border) with the sliding checker.
+## It goes in as the box's very first child, so the wobble and text draw over it.
+func _add_checker(box: Control) -> void:
+	var border := 2.0
+	var checker := ColorRect.new()
+	checker.mouse_filter = MOUSE_FILTER_IGNORE
+	checker.position = Vector2(border, border)
+	checker.size = box.size - Vector2(border, border) * 2.0
+	checker.material = ShaderMaterial.new()
+	checker.material.shader = CheckerShader
+	checker.material.set_shader_parameter("box_size", checker.size)
+	box.add_child(checker)
+	box.move_child(checker, 0)
+	_checkers.append(checker)
 
 
 ## Lays a wobble-shader rectangle over the box, a little bigger so the border
