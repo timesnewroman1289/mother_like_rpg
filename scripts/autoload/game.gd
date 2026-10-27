@@ -28,6 +28,9 @@ var return_position := Vector2.ZERO
 var return_facing := Vector2.DOWN
 var grace_time := 0.0  # seconds of "enemies leave you alone" after fleeing
 
+# Settings. Not part of the save, so they stick through game overs.
+var text_box_color := "Black"  # a key of UIKit.TEXT_BOX_COLORS
+
 var _save := {}
 
 

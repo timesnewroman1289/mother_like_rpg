@@ -1,4 +1,4 @@
-## The field menu (press C): Goods, PSI and Status, like Mother 3's pause screen.
+## The field menu (press C): Goods, PSI, Status and Options, like Mother 3's pause screen.
 ## A row of commands at the top and the party's cards along the bottom.
 extends Control
 
@@ -34,10 +34,10 @@ func _ready() -> void:
 	var top_box := UIKit.make_box(self, Rect2(8, 8, 304, 26))
 	_top = ChoiceList.new()
 	_top.horizontal = true
-	_top.cell = Vector2(74, 16)
+	_top.cell = Vector2(59, 16)
 	_top.position = Vector2(4, 5)
 	top_box.add_child(_top)
-	_top.set_items(["Goods", "PSI", "Status", "Close"])
+	_top.set_items(["Goods", "PSI", "Status", "Options", "Close"])
 
 	_list_box = UIKit.make_box(self, Rect2(8, 38, 160, 118))
 	_list = ChoiceList.new()
@@ -79,6 +79,8 @@ func run() -> void:
 			await _psi()
 		elif pick == 2:
 			await _status()
+		elif pick == 3:
+			await _options()
 		else:
 			break
 		_hide_panels()
@@ -183,11 +185,29 @@ func _status() -> void:
 	_status_box.visible = false
 
 
-func _pick_from_list(describe: Callable) -> int:
+## Pick a text box colour. The info box previews each one as you move.
+func _options() -> void:
+	var names: Array = UIKit.TEXT_BOX_COLORS.keys()
+	_list.set_items(names)
+	var preview := func(i: int) -> void:
+		var c: Dictionary = UIKit.TEXT_BOX_COLORS[names[i]]
+		_info_box.add_theme_stylebox_override("panel", UIKit.box_style(c["bg"], c["border"]))
+		_info.add_theme_color_override("font_color", c["text"])
+		_info.text = "Text box colour:\n%s" % names[i]
+	var pick: int = await _pick_from_list(preview, maxi(names.find(Game.text_box_color), 0))
+	_info_box.add_theme_stylebox_override("panel", UIKit.box_style())
+	_info.add_theme_color_override("font_color", UIKit.TEXT)
+	if pick < 0:
+		return
+	Game.text_box_color = names[pick]
+	await dialogue.say(["• The text box is now %s." % names[pick].to_lower()])
+
+
+func _pick_from_list(describe: Callable, start := 0) -> int:
 	_list_box.visible = true
 	_info_box.visible = true
 	_list.moved.connect(describe)
-	var picked: int = await _list.choose(0)
+	var picked: int = await _list.choose(start)
 	_list.moved.disconnect(describe)
 	return picked
 

@@ -18,6 +18,7 @@ var _label: Label
 var _arrow: Control
 var _choice_box: Panel
 var _choices: ChoiceList
+var _text_color := UIKit.TEXT
 
 var _lines: Array = []
 var _choice_labels: Array = []
@@ -42,7 +43,7 @@ func _ready() -> void:
 	_arrow.size = Vector2(8, 6)
 	_arrow.draw.connect(func() -> void:
 		_arrow.draw_colored_polygon(PackedVector2Array([
-			Vector2(0, 0), Vector2(8, 0), Vector2(4, 5)]), UIKit.TEXT))
+			Vector2(0, 0), Vector2(8, 0), Vector2(4, 5)]), _text_color))
 	_box.add_child(_arrow)
 
 	_choice_box = UIKit.make_box(self, Rect2(208, 136, 104, 26))
@@ -56,6 +57,20 @@ func _ready() -> void:
 	if WOBBLE:
 		_add_wobble(_box)
 		_add_wobble(_choice_box)
+	_apply_colors()
+
+
+## Paints both boxes in the colour picked in the field menu (Game.text_box_color).
+func _apply_colors() -> void:
+	var c: Dictionary = UIKit.TEXT_BOX_COLORS[Game.text_box_color]
+	for box in [_box, _choice_box]:
+		box.add_theme_stylebox_override("panel", UIKit.box_style(c["bg"], c["border"]))
+	_text_color = c["text"]
+	_label.add_theme_color_override("font_color", _text_color)
+	_arrow.queue_redraw()
+	_choices.text_color = _text_color
+	_choices.hilite_color = c["hilite"]
+	_choices.select_bg = Color(_text_color, 0.14)
 
 
 ## Lays a wobble-shader rectangle over the box, a little bigger so the border
@@ -83,6 +98,7 @@ func say(lines: Array, choices: Array = []) -> int:
 	_lines = lines
 	_choice_labels = choices
 	_line = 0
+	_apply_colors()
 	_active = true
 	_opened_frame = Engine.get_process_frames()
 	visible = true

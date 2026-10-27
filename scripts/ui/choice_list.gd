@@ -17,6 +17,11 @@ var horizontal := false
 var cell := Vector2(80, 14)
 var allow_cancel := true
 var index := 0
+# Change these to suit the box behind the list (e.g. dark text on a light box).
+var text_color := UIKit.TEXT
+var dim_color := UIKit.DIM
+var hilite_color := UIKit.HILITE
+var select_bg := UIKit.SELECT_BG
 
 var _items: Array = []
 var _enabled: Array = []
@@ -111,14 +116,14 @@ func _draw() -> void:
 	var baseline := (cell.y + font.get_ascent(fs) - font.get_descent(fs)) * 0.5
 	for i in _items.size():
 		var origin := Vector2(cell.x * i, 0.0) if horizontal else Vector2(0.0, cell.y * i)
-		var color: Color = UIKit.TEXT if _enabled[i] else UIKit.DIM
+		var color: Color = text_color if _enabled[i] else dim_color
 		if i == index and _active:
-			draw_rect(Rect2(origin, cell), UIKit.SELECT_BG)
+			draw_rect(Rect2(origin, cell), select_bg)
 			if _enabled[i]:
-				color = UIKit.HILITE
+				color = hilite_color
 			var tip := origin + Vector2(7.0, cell.y * 0.5)
 			draw_colored_polygon(PackedVector2Array([
-				tip + Vector2(-4, -3.5), tip, tip + Vector2(-4, 3.5)]), UIKit.HILITE)
+				tip + Vector2(-4, -3.5), tip, tip + Vector2(-4, 3.5)]), hilite_color)
 		draw_string(font, origin + Vector2(10, baseline), str(_items[i]),
 			HORIZONTAL_ALIGNMENT_LEFT, cell.x - 12.0, fs, color)
 		if str(_details[i]) != "":
